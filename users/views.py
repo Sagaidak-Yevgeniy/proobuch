@@ -188,9 +188,18 @@ def custom_login(request):
         form = CustomAuthenticationForm(request=request, data=request.POST)
         if form.is_valid():
             username = form.cleaned_data.get('username')
-            email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password')
-            user = authenticate(username=username, email=email, password=password)
+            # Проверяем, является ли введенное имя пользователя email
+              # Пробуем найти пользователя по email
+            if '@' in username:
+                try:
+                    user = CustomUser.objects.get(email=username)
+                    username = user.username
+                except CustomUser.DoesNotExist:
+                    user = None
+            # Аутентифицируем пользователя
+
+            user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
                 

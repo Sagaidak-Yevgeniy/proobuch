@@ -248,22 +248,24 @@ class CustomAuthenticationForm(AuthenticationForm):
     
     username = forms.CharField(
         label='ФИО или Email',
-        validators=[
-            RegexValidator(
-                regex=r'^[\w\s.@+-]+$',
-                message=_('ФИО может содержать буквы, цифры, пробелы и символы @/./+/-/_'),
-                code='invalid_username'
-            ),
-        ],
         widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'ФИО или Email'})
     )
-
-
-
     password = forms.CharField(
         label='Пароль',
         widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Пароль'})
     )
+
+    def clean_username(self):
+        """Проверка и обработка введенного username (ФИО или email)"""
+        username = self.cleaned_data.get('username')
+        if '@' in username:
+            try:
+                user = CustomUser.objects.get(email=username)
+                return user.username
+            except CustomUser.DoesNotExist:
+                raise forms.ValidationError('Пользователь с таким email не найден')
+        return username
+
 
 class ProfileUpdateForm(forms.ModelForm):
     """Форма для обновления профиля пользователя"""
