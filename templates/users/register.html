@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Регистрация - Образовательная платформа{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Регистрация на платформе
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Создайте аккаунт, чтобы получить доступ к образовательным материалам
+            </p>
+        </div>
+        
+        <form class="mt-8 space-y-6" method="post" action="" id="register-form">
+            {% csrf_token %}
+            <!-- Дополнительный CSRF токен для Replit -->
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrf-token-input">
+            <script>
+                // Функция для обеспечения правильной работы CSRF в среде Replit
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Получение CSRF токена из куки
+                    function getCookie(name) {
+                        let cookieValue = null;
+                        if (document.cookie && document.cookie !== '') {
+                            const cookies = document.cookie.split(';');
+                            for (let i = 0; i < cookies.length; i++) {
+                                const cookie = cookies[i].trim();
+                                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+                    
+                    // Получаем CSRF токен
+                    var csrftoken = getCookie('csrftoken');
+                    var tokenInput = document.getElementById('csrf-token-input');
+                    var formElement = document.getElementById('register-form');
+                    
+                    // Устанавливаем текущее значение токена из куки, если он доступен
+                    if (csrftoken && tokenInput) {
+                        tokenInput.value = csrftoken;
+                        console.log('CSRF token updated from cookie');
+                    }
+                    
+                    // Обработчик отправки формы
+                    formElement.addEventListener('submit', function(e) {
+                        // Получаем самый свежий токен из cookie
+                        var freshToken = getCookie('csrftoken');
+                        
+                        if (freshToken && tokenInput) {
+                            // Если токен есть, обновляем его
+                            tokenInput.value = freshToken;
+                            console.log('CSRF token updated before submit');
+                        } else if (!tokenInput.value) {
+                            // Если токен не существует, предотвращаем отправку
+                            e.preventDefault();
+                            console.error('CSRF token not found. Form submission blocked.');
+                            alert('Ошибка безопасности: CSRF токен не найден. Пожалуйста, обновите страницу и попробуйте снова.');
+                        }
+                    });
+                    
+                    // Функционал переключения видимости пароля
+                    document.querySelectorAll('.password-toggle').forEach(function(toggle) {
+                        toggle.addEventListener('click', function() {
+                            var targetId = this.getAttribute('data-target');
+                            var passwordInput = document.getElementById(targetId);
+                            var eyeIcon = this.querySelector('.eye-icon');
+                            var eyeSlashIcon = this.querySelector('.eye-slash-icon');
+                            
+                            if (passwordInput.type === 'password') {
+                                passwordInput.type = 'text';
+                                eyeIcon.classList.add('hidden');
+                                eyeSlashIcon.classList.remove('hidden');
+                            } else {
+                                passwordInput.type = 'password';
+                                eyeIcon.classList.remove('hidden');
+                                eyeSlashIcon.classList.add('hidden');
+                            }
+                        });
+                    });
+                });
+            </script>
+            
+            {% if form.non_field_errors %}
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md" role="alert">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div class="mb-6">
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        ФИО <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <input id="{{ form.username.id_for_label }}" name="{{ form.username.html_name }}" type="text" autocomplete="name" required 
+                               class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                               placeholder="Введите полное ФИО">
+                    </div>
+                    {% if form.username.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.username.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Введите полное ФИО (будет использоваться для авторизации)</p>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                        </div>
+                        <input id="{{ form.email.id_for_label }}" name="{{ form.email.html_name }}" type="email" autocomplete="email" required 
+                               class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                               placeholder="example@mail.ru">
+                    </div>
+                    {% if form.email.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.email.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-6">
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Пароль <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <input id="{{ form.password1.id_for_label }}" name="{{ form.password1.html_name }}" type="password" autocomplete="new-password" required 
+                               class="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                               placeholder="Введите пароль">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer password-toggle" data-target="{{ form.password1.id_for_label }}">
+                            <svg class="h-5 w-5 text-gray-400 eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                            <svg class="h-5 w-5 text-gray-400 eye-slash-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" />
+                                <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                            </svg>
+                        </div>
+                    </div>
+                    {% if form.password1.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.password1.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <ul class="text-gray-500 text-xs mt-1 list-disc list-inside">
+                        <li>Пароль не должен быть слишком похож на вашу личную информацию</li>
+                        <li>Пароль должен содержать как минимум 8 символов</li>
+                        <li>Пароль не может быть часто используемым</li>
+                        <li>Пароль не может состоять только из цифр</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Подтверждение пароля <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <input id="{{ form.password2.id_for_label }}" name="{{ form.password2.html_name }}" type="password" autocomplete="new-password" required 
+                               class="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                               placeholder="Повторите пароль">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer password-toggle" data-target="{{ form.password2.id_for_label }}">
+                            <svg class="h-5 w-5 text-gray-400 eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                            <svg class="h-5 w-5 text-gray-400 eye-slash-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" />
+                                <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                            </svg>
+                        </div>
+                    </div>
+                    {% if form.password2.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.password2.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-6">
+                    <label for="{{ form.role.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Роль <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex space-x-4">
+                        {% for value, text in form.role.field.choices %}
+                        <div class="flex items-center">
+                            <input type="radio" name="{{ form.role.name }}" id="role_{{ value }}" value="{{ value }}" 
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                   {% if form.role.value == value %}checked{% endif %}>
+                            <label for="role_{{ value }}" class="ml-2 block text-sm text-gray-700">{{ text }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.role.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.role.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-6">
+                    <label for="{{ form.captcha.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.captcha.label }} <span class="text-red-500">*</span>
+                    </label>
+                    <div class="bg-gray-100 p-3 rounded-md mb-2">
+                        <p class="font-medium text-gray-800">{{ form.captcha.field.question }}</p>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <input id="{{ form.captcha.id_for_label }}" name="{{ form.captcha.html_name }}" type="text" 
+                               class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                               placeholder="Введите ответ" autocomplete="off" required>
+                        <input type="hidden" name="captcha_key" value="{{ form.captcha.field.captcha_key }}">
+                    </div>
+                    {% if form.captcha.errors %}
+                    <div class="text-red-500 text-xs mt-1">
+                        {% for error in form.captcha.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Введите ответ на математический вопрос, чтобы подтвердить, что вы не робот</p>
+                </div>
+            </div>
+            
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <svg class="h-5 w-5 text-blue-500 group-hover:text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6z" />
+                        </svg>
+                    </span>
+                    Зарегистрироваться
+                </button>
+            </div>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">Уже есть аккаунт?
+                <a href="{% url 'login' %}" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                    Войдите
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
