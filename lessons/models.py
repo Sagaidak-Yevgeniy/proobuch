@@ -57,13 +57,20 @@ class LessonContent(models.Model):
         ('code', 'Код'),
         ('video', 'Видео'),
         ('assignment', 'Задание'),
+        ('markdown', 'Markdown'),
+        ('file', 'Файл'),
+        ('image', 'Изображение'),
     ]
+
+    def get_upload_path(instance, filename):
+        return f'lessons/{instance.lesson.id}/content/{filename}'
     
     lesson = models.ForeignKey(
         Lesson,
         on_delete=models.CASCADE,
         related_name='contents',
-        verbose_name='Урок'
+        verbose_name='Урок',
+        db_index=True
     )
     content_type = models.CharField(
         max_length=20,
@@ -72,6 +79,10 @@ class LessonContent(models.Model):
     )
     content = models.TextField(blank=True, verbose_name='Содержимое')
     video_url = models.URLField(blank=True, verbose_name='Ссылка на видео')
+    file = models.FileField(upload_to=get_upload_path, blank=True, null=True, verbose_name='Файл')
+    image = models.ImageField(upload_to=get_upload_path, blank=True, null=True, verbose_name='Изображение')
+    position = models.PositiveIntegerField(default=0, verbose_name='Позиция')
+   
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
     

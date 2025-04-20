@@ -1,9 +1,15 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Добавление содержимого - {{ lesson.title }} - Образовательная платформа{% endblock %}
+{% block title %}Добавление содержимого - {{ lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
+<div class="max-w-4xl mx-auto">
     <div class="mb-6">
         <a href="{% url 'lesson_detail' pk=lesson.pk %}" class="text-blue-600 hover:text-blue-800">
             <i class="fas fa-arrow-left mr-1"></i> Вернуться к уроку
@@ -11,77 +17,70 @@
     </div>
     
     <div class="bg-white p-8 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold mb-6">{{ title }}</h1>
+        <h1 class="text-2xl font-bold mb-6">Добавление содержимого</h1>
         
-        <form method="post">
+        <form method="post" enctype="multipart/form-data" id="content-form" class="space-y-6">
             {% csrf_token %}
             
             <div class="grid grid-cols-1 gap-6">
-                {% if form.non_field_errors %}
-                <div class="col-span-1">
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
-                        {% for error in form.non_field_errors %}
-                        <p>{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                
-                <div class="col-span-1">
-                    <label for="{{ form.content_type.id_for_label }}" class="block text-gray-700 font-medium mb-2">
-                        {{ form.content_type.label }} <span class="text-red-500">*</span>
-                    </label>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Тип содержимого</label>
                     {{ form.content_type }}
                     {% if form.content_type.errors %}
-                    <div class="text-red-500 text-sm mt-1">
-                        {% for error in form.content_type.errors %}
-                        {{ error }}
-                        {% endfor %}
-                    </div>
+                    <p class="text-red-500 text-xs mt-1">{{ form.content_type.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
-                <div class="col-span-1 content-field" id="content-field">
-                    <label for="{{ form.content.id_for_label }}" class="block text-gray-700 font-medium mb-2">
-                        {{ form.content.label }}
-                    </label>
+
+                <div class="content-field" id="content-field">
+                    <label class="block text-sm font-medium text-gray-700">Содержимое</label>
                     {{ form.content }}
                     {% if form.content.errors %}
-                    <div class="text-red-500 text-sm mt-1">
-                        {% for error in form.content.errors %}
-                        {{ error }}
-                        {% endfor %}
-                    </div>
+                    <p class="text-red-500 text-xs mt-1">{{ form.content.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
-                <div class="col-span-1 video-field hidden" id="video-field">
-                    <label for="{{ form.video_url.id_for_label }}" class="block text-gray-700 font-medium mb-2">
-                        {{ form.video_url.label }}
-                    </label>
+
+                <div class="video-field hidden" id="video-field">
+                    <label class="block text-sm font-medium text-gray-700">Ссылка на видео</label>
                     {{ form.video_url }}
                     {% if form.video_url.errors %}
-                    <div class="text-red-500 text-sm mt-1">
-                        {% for error in form.video_url.errors %}
-                        {{ error }}
-                        {% endfor %}
-                    </div>
+                    <p class="text-red-500 text-xs mt-1">{{ form.video_url.errors.0 }}</p>
                     {% endif %}
-                    <p class="text-gray-500 text-xs mt-1">Вставьте URL видео с YouTube, например: https://www.youtube.com/embed/video_id</p>
+                    <p class="text-gray-500 text-xs mt-1">Например: https://www.youtube.com/embed/video_id</p>
                 </div>
-                
-                <div class="col-span-1 flex justify-between pt-4 border-t">
-                    <a href="{% url 'lesson_detail' pk=lesson.pk %}" class="bg-gray-200 text-gray-700 py-2 px-4 rounded hover:bg-gray-300">
-                        Отмена
-                    </a>
-                    <div>
-                        <button type="submit" name="add_more" value="true" class="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 mr-2">
-                            Сохранить и добавить еще
-                        </button>
-                        <button type="submit" class="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                            Сохранить
-                        </button>
-                    </div>
+
+                <div class="file-field hidden" id="file-field">
+                    <label class="block text-sm font-medium text-gray-700">Файл</label>
+                    {{ form.file }}
+                    {% if form.file.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.file.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="image-field hidden" id="image-field">
+                    <label class="block text-sm font-medium text-gray-700">Изображение</label>
+                    {{ form.image }}
+                    {% if form.image.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.image.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Позиция</label>
+                    {{ form.position }}
+                </div>
+            </div>
+
+            <div class="flex justify-between pt-6">
+                <a href="{% url 'lesson_detail' pk=lesson.pk %}" class="btn btn-secondary">
+                    Отмена
+                </a>
+                <div>
+                    <button type="submit" name="add_more" value="true" class="btn btn-primary mr-2">
+                        Сохранить и добавить еще
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        Сохранить
+                    </button>
                 </div>
             </div>
         </form>
@@ -90,26 +89,61 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5/lib/codemirror.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/codemirror@5/mode/python/python.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const contentTypeSelect = document.getElementById('content-type-select');
     const contentField = document.getElementById('content-field');
     const videoField = document.getElementById('video-field');
+    const fileField = document.getElementById('file-field');
+    const imageField = document.getElementById('image-field');
     
-    function toggleFields() {
-        if (contentTypeSelect.value === 'video') {
-            contentField.classList.add('hidden');
-            videoField.classList.remove('hidden');
-        } else {
-            contentField.classList.remove('hidden');
-            videoField.classList.add('hidden');
+    let editor = null;
+    
+    function initializeEditor(type) {
+        const textarea = document.querySelector('[data-editor]');
+        if (!textarea) return;
+        
+        if (editor) {
+            editor.toTextArea();
+            editor = null;
+        }
+        
+        if (type === 'code') {
+            editor = CodeMirror.fromTextArea(textarea, {
+                mode: 'python',
+                lineNumbers: true,
+                theme: 'default',
+                viewportMargin: Infinity
+            });
+        } else if (type === 'markdown') {
+            editor = new EasyMDE({
+                element: textarea,
+                spellChecker: false,
+                autosave: {
+                    enabled: true,
+                    delay: 1000,
+                    uniqueId: 'lesson-content-' + {{ lesson.id }}
+                }
+            });
         }
     }
     
-    // Инициализация полей при загрузке страницы
-    toggleFields();
+    function toggleFields() {
+        const type = contentTypeSelect.value;
+        
+        contentField.classList.toggle('hidden', !['text', 'code', 'markdown'].includes(type));
+        videoField.classList.toggle('hidden', type !== 'video');
+        fileField.classList.toggle('hidden', type !== 'file');
+        imageField.classList.toggle('hidden', type !== 'image');
+        
+        initializeEditor(type);
+    }
     
-    // Обработчик изменения типа контента
+    toggleFields();
     contentTypeSelect.addEventListener('change', toggleFields);
 });
 </script>

@@ -23,7 +23,7 @@ def lesson_detail(request, pk):
         return redirect('course_detail', slug=course.slug)
     
     # Получаем все содержимое урока
-    contents = lesson.contents.all().order_by('id')
+    contents = LessonContent.objects.filter(lesson=lesson).order_by('id')
     
     # Проверяем статус завершения урока для пользователя
     lesson_completion, created = LessonCompletion.objects.get_or_create(
@@ -236,28 +236,32 @@ def lesson_content_create(request, lesson_id):
     if request.method == 'POST':
         form = LessonContentForm(request.POST)
         if form.is_valid():
-            content = form.save(commit=False)
-            content.lesson = lesson
-            content.save()
-            
-            content_type = form.cleaned_data.get('content_type')
-            
-            # Если создано задание, создаем соответствующий объект Assignment
-            if content_type == 'assignment':
-                from assignments.models import Assignment
-                Assignment.objects.create(
-                    lesson_content=content,
-                    title=f'Задание к уроку {lesson.title}'
-                )
-                messages.success(request, 'Задание успешно создано!')
-            else:
-                messages.success(request, f'{content.get_content_type_display()} успешно добавлен в урок!')
-            
-            # Спрашиваем, хочет ли пользователь добавить еще содержимое или вернуться к уроку
-            if 'add_more' in request.POST:
+            try:
+                content = form.save(commit=False)
+                content.lesson = lesson
+                content.save()
+                
+                content_type = form.cleaned_data.get('content_type')
+                
+                # Если создано задание, создаем соответствующий объект Assignment
+                if content_type == 'assignment':
+                    from assignments.models import Assignment
+                    Assignment.objects.create(
+                        lesson_content=content,
+                        title=f'Задание к уроку {lesson.title}'
+                    )
+                    messages.success(request, 'Задание успешно создано!')
+                else:
+                    messages.success(request, f'{content.get_content_type_display()} успешно добавлен в урок!')
+                
+                # Спрашиваем, хочет ли пользователь добавить еще содержимое или вернуться к уроку
+                if 'add_more' in request.POST:
+                    return redirect('lesson_content_create', lesson_id=lesson.id)
+                else:
+                    return redirect('lesson_detail', pk=lesson.pk)
+            except Exception as e:
+                messages.error(request, f'Ошибка при сохранении контента: {str(e)}')
                 return redirect('lesson_content_create', lesson_id=lesson.id)
-            else:
-                return redirect('lesson_detail', pk=lesson.pk)
     else:
         form = LessonContentForm()
     

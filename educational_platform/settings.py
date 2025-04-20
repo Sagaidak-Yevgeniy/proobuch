@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Сторонние приложения
     'markdownify.apps.MarkdownifyConfig',
+    'widget_tweaks',
     # Собственные приложения
     'users.apps.UsersConfig',
     'courses.apps.CoursesConfig',
